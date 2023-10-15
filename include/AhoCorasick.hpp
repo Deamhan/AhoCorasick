@@ -16,9 +16,9 @@ namespace AhoCorasick
     {
         size_t offset;
         size_t index;
-        StringType* word;
+        const StringType* word;
 
-        Match(size_t offsetArg, size_t indexArg, StringType* wordArg) noexcept : 
+        Match(size_t offsetArg, size_t indexArg, const StringType* wordArg) noexcept : 
             offset(offsetArg), index(indexArg), word(wordArg)
         {}
     };
@@ -32,15 +32,13 @@ namespace AhoCorasick
     template <class StringType, PerformanceStrategy userStrategy = PerformanceStrategy::Balanced>
     class ScannerImpl;
 
-    const size_t MaxArraySize = 256;
-
     template <class ValueType>
-    constexpr size_t GetRequiredArraySize() { return std::numeric_limits<ValueType>::max() + 1; }
+    constexpr size_t CanUseMaximumPerformancePolicy() { return sizeof(ValueType) == 1; }
 
     template <class ValueType>
     constexpr std::enable_if_t<std::numeric_limits<ValueType>::is_integer, PerformanceStrategy>  GetPerformanceStrategy(PerformanceStrategy strategy)
     {
-        return GetRequiredArraySize<ValueType>() > MaxArraySize ? PerformanceStrategy::Balanced : strategy;
+        return CanUseMaximumPerformancePolicy<ValueType>() ? PerformanceStrategy::Balanced : strategy;
     }
 
     template <class ValueType>
@@ -119,7 +117,7 @@ namespace AhoCorasick
         static const PerformanceStrategy strategy = PerformanceStrategy::MaximumPerformance;
 
         typedef TrieNode<ValueType, StringType, strategy> NodeType;
-        typedef std::array<std::unique_ptr<NodeType>, GetRequiredArraySize<ValueType>()> ArrayType;
+        typedef std::array<std::unique_ptr<NodeType>, std::numeric_limits<ValueType>::max()> ArrayType;
         ArrayType nodes;
 
         NodeType* TryGet(const ValueType& value)

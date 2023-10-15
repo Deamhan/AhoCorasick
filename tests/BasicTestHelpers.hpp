@@ -7,8 +7,8 @@
 #include <iostream>
 #include <vector>
 
-template<class StringMatchType>
-static StringMatchType MakeMatch(size_t offset, size_t index)
+template <class StringMatchType, class StringContainerType>
+static StringMatchType MakeMatch(size_t offset, size_t index, const StringContainerType& strings)
 {
 	return StringMatchType{ offset, index, &strings[index] };
 }
@@ -23,6 +23,8 @@ static bool compareMatches(const StringMatchType& lhs, const StringMatchType& rh
 template <AhoCorasick::PerformanceStrategy strategy, class MatchContainerType, class StringContainerType, class StringType>
 static bool BasicStrTest(StringType text, MatchContainerType matches, StringContainerType strings)
 {
+	typedef typename MatchContainerType::value_type StringMatch;
+
 	std::vector<StringMatch> found;
 	auto callback = [&found](const StringMatch& m)
 	{
@@ -30,7 +32,7 @@ static bool BasicStrTest(StringType text, MatchContainerType matches, StringCont
 		return true;
 	};
 
-	AhoCorasick::Scanner<StringClass, strategy> scanner(strings.begin(), strings.end());
+	AhoCorasick::Scanner<StringType, strategy> scanner(strings.begin(), strings.end());
 
 	scanner.Scan(callback, text.begin(), text.end());
 
