@@ -48,9 +48,9 @@ if (MSVC)
     set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} ${RELEASE_LINKER_FLAGS}")
 endif()
 
-add_executable(basicCharTestExec source/basicCharTest.cpp)
-add_executable(basicWCharTestExec source/basicWCharTest.cpp)
-add_executable(basicBinaryTestExec source/basicBinaryTest.cpp)
+add_executable(basicCharTestExec tests/basicCharTest.cpp)
+add_executable(basicWCharTestExec tests/basicWCharTest.cpp)
+add_executable(basicBinaryTestExec tests/basicBinaryTest.cpp)
 
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT basicCharTestExec)
 
