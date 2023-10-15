@@ -29,6 +29,9 @@ namespace AhoCorasick
         Balanced
     };
 
+    template <class StringType, PerformanceStrategy userStrategy = PerformanceStrategy::Balanced>
+    class ScannerImpl;
+
     const size_t MaxArraySize = 256;
 
     template <class ValueType>
@@ -36,12 +39,37 @@ namespace AhoCorasick
 
     template <class ValueType>
     constexpr std::enable_if_t<std::numeric_limits<ValueType>::is_integer, PerformanceStrategy>  GetPerformanceStrategy(PerformanceStrategy strategy)
-    { 
-        return GetRequiredArraySize<ValueType>() > MaxArraySize ? PerformanceStrategy::Balanced : strategy; 
+    {
+        return GetRequiredArraySize<ValueType>() > MaxArraySize ? PerformanceStrategy::Balanced : strategy;
     }
 
     template <class ValueType>
     constexpr PerformanceStrategy GetPerformanceStrategy(...) { return PerformanceStrategy::Balanced; }
+
+    template <class StringType, PerformanceStrategy strategy = PerformanceStrategy::Balanced>
+    class Scanner
+    {
+    public:
+        typedef typename StringType::value_type ValueType;
+
+        template <class MatchCallback, class InputIt>
+        void Scan(const MatchCallback& callback, InputIt begin, InputIt end)
+        {
+            mImpl->Scan(callback, begin, end);
+        }
+
+        static const PerformanceStrategy appliedStrategy = GetPerformanceStrategy<ValueType>(strategy);
+
+        template <class WordIt>
+        Scanner(WordIt begin, WordIt end) : 
+            mImpl(std::make_unique<ScannerImpl<StringType, appliedStrategy>>(begin, end))
+        {}
+
+    private:
+        std::unique_ptr<ScannerImpl<StringType, appliedStrategy>> mImpl;
+    };
+
+#pragma region Implementation
 
     template<class ValueType, class StringType, PerformanceStrategy strategy>
     struct TrieNode;
@@ -56,7 +84,7 @@ namespace AhoCorasick
     struct NodeChildren
     {
         typedef TrieNode<ValueType, StringType, strategy> NodeType;
-        typedef std::map<ValueType, std::unique_ptr<NodeType>> MapType;
+        typedef std::map<ValueType, NodeType> MapType;
 
         NodeSearchResult AddOrGet(const ValueType& value, NodeType*& result) noexcept
         {
@@ -64,12 +92,12 @@ namespace AhoCorasick
             bool found = (it != nodes.end() && it->first == value);
             if (found)
             {
-                result = it->second.get();
+                result = &it->second;
                 return NodeSearchResult::Found;
             }
 
-            auto added = nodes.emplace_hint(it, value, std::make_unique<NodeType>());
-            result = added->second.get();
+            auto added = nodes.emplace_hint(it, value, NodeType{});
+            result = &added->second;
             result->value = value;
             return NodeSearchResult::Added;
         }
@@ -77,12 +105,12 @@ namespace AhoCorasick
         NodeType* TryGet(const ValueType& value) noexcept
         {
             auto it = nodes.find(value);
-            return it != nodes.end() ? it->second.get() : nullptr;
+            return it != nodes.end() ? &it->second : nullptr;
         }
 
         MapType nodes;
 
-        NodeType* GetFromStorageSlot(typename MapType::value_type& storageSlot) noexcept { return storageSlot.second.get(); }
+        NodeType* GetFromStorageSlot(typename MapType::value_type& storageSlot) noexcept { return &storageSlot.second; }
     };
 
     template <class ValueType, class StringType>
@@ -145,12 +173,11 @@ namespace AhoCorasick
         {}
     };
 
-    template <class StringType, PerformanceStrategy userStrategy = PerformanceStrategy::Balanced>
-    class Scanner
+    template <class StringType, PerformanceStrategy strategy>
+    class ScannerImpl
     {
     public:
         typedef typename StringType::value_type ValueType;
-        static const PerformanceStrategy strategy = GetPerformanceStrategy<ValueType>(userStrategy);
 
         template <class MatchCallback, class InputIt>
         void Scan(const MatchCallback& callback, InputIt begin, InputIt end)
@@ -182,7 +209,7 @@ namespace AhoCorasick
         }
 
         template <class WordIt>
-        Scanner(WordIt begin, WordIt end) : mCurrentIndex(0)
+        ScannerImpl(WordIt begin, WordIt end) : mCurrentIndex(0)
         {
             for (WordIt it = begin; it < end; ++it)
                 AddWord(*it);
@@ -283,4 +310,6 @@ namespace AhoCorasick
             return true;
         }
     };
+
+#pragma endregion Implementation
 }
