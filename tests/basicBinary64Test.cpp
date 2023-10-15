@@ -18,8 +18,5 @@ static std::vector<StringMatch> expected = {
 
 int main()
 {
-	bool passed = BasicStrTest<AhoCorasick::PerformanceStrategy::MaximumPerformance>(text, expected, strings)
-		&& BasicStrTest<AhoCorasick::PerformanceStrategy::Balanced>(text, expected, strings);
-
-	return passed ? 0 : 1;
+	return BasicStrTestAllStrategies(text, expected, strings) ? 0 : 1;
 }

@@ -39,3 +39,10 @@ static bool BasicStrTest(StringType text, MatchContainerType matches, StringCont
 	return matches.size() == found.size() 
 		&& std::equal(matches.begin(), matches.end(), found.begin(), compareMatches<typename MatchContainerType::value_type>);
 }
+
+template <class MatchContainerType, class StringContainerType, class StringType>
+static bool BasicStrTestAllStrategies(StringType text, MatchContainerType matches, StringContainerType strings)
+{
+	return BasicStrTest<AhoCorasick::PerformanceStrategy::Balanced>(text, matches, strings)
+		&& BasicStrTest<AhoCorasick::PerformanceStrategy::MaximumPerformance>(text, matches, strings);
+}
