@@ -38,7 +38,7 @@ namespace AhoCorasick
     template <class ValueType>
     constexpr std::enable_if_t<std::numeric_limits<ValueType>::is_integer, PerformanceStrategy>  GetPerformanceStrategy(PerformanceStrategy strategy)
     {
-        return CanUseMaximumPerformancePolicy<ValueType>() ? PerformanceStrategy::Balanced : strategy;
+        return CanUseMaximumPerformancePolicy<ValueType>() ? strategy : PerformanceStrategy::Balanced;
     }
 
     template <class ValueType>

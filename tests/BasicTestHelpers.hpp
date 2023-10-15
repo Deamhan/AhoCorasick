@@ -36,5 +36,6 @@ static bool BasicStrTest(StringType text, MatchContainerType matches, StringCont
 
 	scanner.Scan(callback, text.begin(), text.end());
 
-	return std::equal(matches.begin(), matches.end(), found.begin(), compareMatches<typename MatchContainerType::value_type>);
+	return matches.size() == found.size() 
+		&& std::equal(matches.begin(), matches.end(), found.begin(), compareMatches<typename MatchContainerType::value_type>);
 }
