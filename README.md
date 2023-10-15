@@ -9,7 +9,7 @@ The implementation interface is very simple: there is a *AhoCorasick::Scanner* t
 Apart from that the implementation can be perfomance efficient (parent to child access with *O(1)*) or memory efficient biased (parent to child access with *O(log(n))*) by use of *PerformanceStrategy* template parameter of *Scanner*.
 
 ## How to build
-Just generate project you want using *CMake* and enjoy :-)
+Just generate project you want using *CMake* and enjoy :smile:
 
 ## How to run tests
 The tests provided can be run manually of using *CTest* (*CMake* provided test driver utility).
