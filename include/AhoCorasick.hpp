@@ -180,20 +180,22 @@ namespace AhoCorasick
         static const PerformanceStrategy strategy = PerformanceStrategy::MaximumPerformance;
 
         typedef TrieNode<ValueType, StringType, strategy> NodeType;
-        typedef std::array<std::unique_ptr<NodeType>, std::numeric_limits<ValueType>::max()> ArrayType;
+
+        // for signed types lets use signed -> unsigned conversion to avoid shifts
+        typedef std::make_unsigned_t<ValueType> UnsignedValueType;
+        typedef std::array<std::unique_ptr<NodeType>, std::numeric_limits<UnsignedValueType>::max() + 1> ArrayType;
         ArrayType nodes;
 
         NodeType* TryGet(const ValueType& value)
         {
-            return nodes[(size_t)value].get();
+            return nodes[(UnsignedValueType)value].get();
         }
 
         template <class PointerType>
         void Add(const ValueType& value, PointerType&& node, NodeType*)
         {
-            auto& slot = nodes[(size_t)value];
+            auto& slot = nodes[(UnsignedValueType)value];
             slot = std::forward<PointerType>(node);
-
         }
 
         NodeSearchResult AddOrGet(const ValueType& value, NodeType*& result) noexcept
@@ -205,7 +207,7 @@ namespace AhoCorasick
                 return NodeSearchResult::Found;
             }
 
-            auto& slot = nodes[(size_t)value]; 
+            auto& slot = nodes[(UnsignedValueType)value];
             slot = std::make_unique<NodeType>();
             result = slot.get();
             result->value = value;
