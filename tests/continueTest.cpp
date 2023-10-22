@@ -19,7 +19,7 @@ class TestContinueHandler
 public:
 	bool operator()(StringClass::const_iterator& begin, StringClass::const_iterator& end)
 	{
-		if (++mIndex >= _countof(text))
+		if (++mIndex >= sizeof(text)/sizeof(text[0]))
 			return false;
 
 		begin = text[mIndex].begin();

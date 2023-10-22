@@ -34,7 +34,7 @@ static bool BasicStrTest(StringType text, MatchContainerType matches, StringCont
 
 	AhoCorasick::Scanner<StringType, strategy> scanner(strings.begin(), strings.end());
 
-	scanner.Scan(callback, text.begin(), text.end());
+	scanner.Scan(callback, text.cbegin(), text.cend());
 
 	return matches.size() == found.size() 
 		&& std::equal(matches.begin(), matches.end(), found.begin(), compareMatches<typename MatchContainerType::value_type>);
@@ -63,7 +63,7 @@ static bool ContinueStrTest(StringType text, MatchContainerType matches, StringC
 
 	AhoCorasick::Scanner<StringType, strategy> scanner(strings.begin(), strings.end());
 
-	scanner.Scan(callback, text.begin(), text.end(), continueHandler);
+	scanner.Scan(callback, text.cbegin(), text.cend(), continueHandler);
 
 	return matches.size() == found.size()
 		&& std::equal(matches.begin(), matches.end(), found.begin(), compareMatches<typename MatchContainerType::value_type>);
