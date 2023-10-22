@@ -73,6 +73,15 @@ namespace AhoCorasick
     constexpr PerformanceStrategy GetPerformanceStrategy(...) { return PerformanceStrategy::Balanced; }
 
     /**
+     * \brief Default handler of iteration ending, just stops it
+     */
+    template <class InputIt>
+    bool DefaultContinueSearchCallback(InputIt&, InputIt&)
+    {
+        return false;
+    }
+
+    /**
      * \brief Main class allowing to scan sequence of 'characters' for patterns. Doesn't support empty sequences and duplications.
      * 
      * \tparam StringType Pattern holding container class supporting STL style iterators
@@ -93,6 +102,9 @@ namespace AhoCorasick
          *
          * \tparam MatchCallback Function-like callback of bool(::Match)
          * \tparam InputIt Iterator-like class holding 'character' to scan
+         * \tparam ContinueSearchCallback callback allowing to continue scanning after reach of end iterator.
+         *  The interface is <em>bool(InputIt& begin, InputIt&end)</em>, to continue scanning <em>begin</em>
+         *  and <em>end</em> must be updated and return value must be <em>true</em>.
          * 
          * \param callback Callback of type ::MatchCallback
          * \param begin First input sequence iterator
@@ -101,10 +113,12 @@ namespace AhoCorasick
          * Return value of the callback defines if scanning should continue or not.
          *
          */
-        template <class MatchCallback, class InputIt>
-        void Scan(const MatchCallback& callback, InputIt begin, InputIt end)
+        template <class MatchCallback, class InputIt, 
+            class ContinueSearchCallback = decltype(DefaultContinueSearchCallback<InputIt>)>
+        void Scan(const MatchCallback& callback, InputIt begin, InputIt end, 
+            ContinueSearchCallback continueSearchCallback = DefaultContinueSearchCallback<InputIt>)
         {
-            mImpl->Scan(callback, begin, end);
+            mImpl->Scan(callback, begin, end, continueSearchCallback);
         }
 
         static const PerformanceStrategy appliedStrategy = GetPerformanceStrategy<ValueType>(strategy);
@@ -242,33 +256,37 @@ namespace AhoCorasick
     public:
         typedef typename StringType::value_type ValueType;
 
-        template <class MatchCallback, class InputIt>
-        void Scan(const MatchCallback& callback, InputIt begin, InputIt end)
+        template <class MatchCallback, class InputIt, class ContinueSearchCallback>
+        void Scan(const MatchCallback& callback, InputIt begin, InputIt end, 
+            ContinueSearchCallback continueSearchCallback)
         {
             NodeType* current = &mRoot;
             size_t offset = 0;
-            for (InputIt next = begin; next != end; ++next, ++offset)
+            do
             {
-                current = FindNextCharNode(*next, current);
-                if (current == nullptr)
+                for (InputIt next = begin; next != end; ++next, ++offset)
                 {
-                    current = &mRoot;
-                    continue;
-                }
-
-                auto matchNode = current;
-                do
-                {
-                    if (!matchNode->word.empty())
+                    current = FindNextCharNode(*next, current);
+                    if (current == nullptr)
                     {
-                        Match<StringType> m { offset + 1 - matchNode->word.size(), matchNode->matchIndex, &matchNode->word };
-                        if (!callback(m))
-                            return;
+                        current = &mRoot;
+                        continue;
                     }
 
-                    matchNode = matchNode->nextMatchLink;
-                } while (matchNode != nullptr);
-            }
+                    auto matchNode = current;
+                    do
+                    {
+                        if (!matchNode->word.empty())
+                        {
+                            Match<StringType> m{ offset + 1 - matchNode->word.size(), matchNode->matchIndex, &matchNode->word };
+                            if (!callback(m))
+                                return;
+                        }
+
+                        matchNode = matchNode->nextMatchLink;
+                    } while (matchNode != nullptr);
+                }
+            } while (continueSearchCallback(begin, end));
         }
 
         template <class WordIt>

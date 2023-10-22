@@ -46,3 +46,25 @@ static bool BasicStrTestAllStrategies(StringType text, MatchContainerType matche
 	return BasicStrTest<AhoCorasick::PerformanceStrategy::Balanced>(text, matches, strings)
 		&& BasicStrTest<AhoCorasick::PerformanceStrategy::MaximumPerformance>(text, matches, strings);
 }
+
+template <AhoCorasick::PerformanceStrategy strategy, class MatchContainerType, class StringContainerType,
+	class StringType, class ContinueHandler>
+static bool ContinueStrTest(StringType text, MatchContainerType matches, StringContainerType strings, 
+	ContinueHandler continueHandler)
+{
+	typedef typename MatchContainerType::value_type StringMatch;
+
+	std::vector<StringMatch> found;
+	auto callback = [&found](const StringMatch& m)
+	{
+		found.emplace_back(m.offset, m.index, m.word);
+		return true;
+	};
+
+	AhoCorasick::Scanner<StringType, strategy> scanner(strings.begin(), strings.end());
+
+	scanner.Scan(callback, text.begin(), text.end(), continueHandler);
+
+	return matches.size() == found.size()
+		&& std::equal(matches.begin(), matches.end(), found.begin(), compareMatches<typename MatchContainerType::value_type>);
+}

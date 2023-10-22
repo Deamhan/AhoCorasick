@@ -54,6 +54,7 @@ add_executable(basicBinaryTestExec tests/basicBinaryTest.cpp)
 add_executable(basicBinary64TestExec tests/basicBinary64Test.cpp)
 add_executable(realWorldExamplesExec tests/realWorldExamples.cpp)
 add_executable(basicNegativeTestExec tests/basicNegativeTest.cpp)
+add_executable(continueTestExec tests/continueTest.cpp)
 
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT basicCharTestExec)
 
@@ -64,3 +65,4 @@ add_test(NAME basicBinaryTest       COMMAND basicBinaryTestExec)
 add_test(NAME basicBinary64Test     COMMAND basicBinary64TestExec)
 add_test(NAME realWorldExamplesTest COMMAND realWorldExamplesExec)
 add_test(NAME basicNegativeTest     COMMAND basicNegativeTestExec)
+add_test(NAME continueTest          COMMAND continueTestExec)
